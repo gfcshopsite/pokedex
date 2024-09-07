@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+            color: #e3350d;
+        }
+        #search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #pokemon-info, #pokemon-list {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        img {
+            display: block;
+            margin: 0 auto;
+            max-width: 200px;
+        }
+        #pokemon-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .pokemon-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+        .pokemon-item:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+
+<body>
+    <h1>Pokédex</h1>
+    <div id="search-container">
+        <input type="text" id="pokemon-name" placeholder="Inserisci il nome del Pokémon">
+        <button onclick="searchPokemon()">Cerca</button>
+    </div>
+    <div id="pokemon-info"></div>
+    <div id="pokemon-list"></div>
+
+    <script>
+        const pokemonList = document.getElementById('pokemon-list');
+        const infoContainer = document.getElementById('pokemon-info');
+
+        async function loadPokemonList() {
+            try {
+                const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
+                const data = await response.json();
+                
+                data.results.forEach(pokemon => {
+                    const pokemonElement = document.createElement('div');
+                    pokemonElement.classList.add('pokemon-item');
+                    pokemonElement.textContent = pokemon.name;
+                    pokemonElement.onclick = () => searchPokemon(pokemon.name);
+                    pokemonList.appendChild(pokemonElement);
+                });
+            } catch (error) {
+                console.error('Errore nel caricamento della lista dei Pokémon:', error);
+            }
+        }
+
+        async function searchPokemon(pokemonName) {
+            if (!pokemonName) {
+                pokemonName = document.getElementById('pokemon-name').value.toLowerCase();
+            }
+
+            try {
+                const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+                const data = await response.json();
+
+                infoContainer.innerHTML = `
+                    <h2>${data.name.charAt(0).toUpperCase() + data.name.slice(1)}</h2>
+                    <img src="${data.sprites.front_default}" alt="${data.name}">
+                    <p>Altezza: ${data.height / 10} m</p>
+                    <p>Peso: ${data.weight / 10} kg</p>
+                    <p>Tipo: ${data.types.map(type => type.type.name).join(', ')}</p>
+                `;
+            } catch (error) {
+                infoContainer.innerHTML = '<p>Pokémon non trovato. Riprova con un nome diverso.</p>';
+            }
+        }
+
+        loadPokemonList();
+    </script>
+
+</body></html>
